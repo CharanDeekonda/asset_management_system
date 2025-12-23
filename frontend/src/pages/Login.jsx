@@ -15,7 +15,7 @@ const Login = ({ setAuthUser }) => {
     }, { withCredentials: true });
 
     if (res.data.user) {
-      showSnackbar("Successfully Authenticated!", "success");
+      showSnackbar("Successfully Logged In!", "success");
       setAuthUser(res.data.user);
       // window.location.href = "/"; 
     }

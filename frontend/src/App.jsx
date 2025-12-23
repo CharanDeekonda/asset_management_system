@@ -1,4 +1,4 @@
-import {useEffect } from 'react';
+import { useEffect } from 'react';
 import React, { useState } from 'react';
 import { Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
 import axios from 'axios';
@@ -15,9 +15,11 @@ function App() {
 
   const askConfirmation = useConfirm();
   const showSnackbar = useSnackbar();
+
   useEffect(() => {
     console.log("Current Auth State:", authUser);
   }, [authUser]);
+
   const handleLogout = () => {
     askConfirmation(
       "Confirm Logout",
@@ -35,24 +37,25 @@ function App() {
     );
   };
   if (!authUser) {
+    return (
+      <Routes>
+        <Route path="/login" element={<Login setAuthUser={setAuthUser} />} />
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
+    );
+  }
+
   return (
-    <Routes>
-      <Route path="/login" element={<Login setAuthUser={setAuthUser} />} />
-      <Route path="*" element={<Navigate to="/login" replace />} />
-    </Routes>
-  );
-}
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-gray-800 border-b shadow-2xl shadow-black/60 hover:bg-gray-900 border-gray-700 px-6 py-4 flex items-center justify-between sticky top-0 z-10">
+    <div className="min-h-screen bg-gray-900 flex flex-col">
+      <nav className="bg-gray-800/50 shadow-lg shadow-gray-700 backdrop-blur-md border-b border-gray-700 px-6 py-4 flex items-center justify-between sticky top-0 z-10">
         <div className="flex items-center gap-8">
-          <div className="flex bg-gray-300 p-1 rounded-xl">
+          <div className="flex bg-gray-900/80 p-1 rounded-xl border border-gray-700">
             <Link 
               to="/" 
               className={`px-6 py-2 rounded-lg font-medium transition-all ${
-                location.pathname === '/' 
-                ? 'bg-white text-purple-600 shadow-sm' 
-                : 'text-gray-500 hover:text-gray-700'
+                location.pathname === '/' || location.pathname.startsWith('/assets')
+                ? 'bg-white text-blue-600 shadow-lg' 
+                : 'text-gray-400 hover:text-white'
               }`}
             >
               Assets
@@ -61,8 +64,8 @@ function App() {
               to="/users" 
               className={`px-6 py-2 rounded-lg font-medium transition-all ${
                 location.pathname === '/users' 
-                ? 'bg-white text-blue-600 shadow-sm' 
-                : 'text-gray-500 hover:text-gray-700'
+                ? 'bg-white text-blue-600 shadow-lg' 
+                : 'text-gray-400 hover:text-white'
               }`}
             >
               User Management
@@ -70,21 +73,19 @@ function App() {
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
-        {authUser && (
-          <span className="text-sm text-white hidden sm:block font-semibold">
-            Welcome, {authUser.name}
+        <div className="flex items-center gap-6">
+          <span className="text-sm text-gray-300 hidden sm:block">
+            Welcome, <span className="font-bold text-white">{authUser.name}</span>
           </span>
-        )}
-        <button 
-          onClick={handleLogout} 
-          className="text-red-400 font-medium bg-gray-700 hover:bg-red-900 hover:text-white px-4 py-2 rounded-lg transition-colors border border-gray-600"
-        >
-          Logout
-        </button>
-      </div>
+          <button 
+            onClick={handleLogout} 
+            className="text-gray-300 font-medium bg-gray-700/50 hover:bg-red-600 hover:text-white px-5 py-2 rounded-lg transition-all border border-gray-600 hover:border-red-500"
+          >
+            Logout
+          </button>
+        </div>
       </nav>
-      <main className="container mx-auto p-6">
+      <main className="flex-grow">
         <Routes>
           <Route path="/" element={<AssetsLanding />} />
           <Route path="/users" element={<UserManagement />} />
