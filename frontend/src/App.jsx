@@ -65,6 +65,7 @@ function App() {
             onClick={handleLogout} 
             className="text-red-500 font-medium bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded-lg transition"
           >
+            
             Logout
           </button>
         </div>
