@@ -12,7 +12,6 @@ exports.getAllUsers = async (req, res) => {
 exports.createUser = async (req, res) => {
     const { name, email } = req.body;
     try {
-        // Requirement: Add user to system
         await pool.query('INSERT INTO users (name, email) VALUES (?, ?)', [name, email]);
         res.status(201).json({ message: "User added successfully" });
     } catch (err) {
@@ -32,7 +31,7 @@ exports.updateUser = async (req, res) => {
 };
 exports.deleteUser = async (req, res) => {
     const { id } = req.params;
-    console.log(id);
+    // console.log(id);
     try {
         const [result] = await pool.query('DELETE FROM users WHERE id = ?', [id]);
         

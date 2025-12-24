@@ -24,7 +24,7 @@ const UserManagement = () => {
   useEffect(() => { fetchUsers(); }, [fetchUsers]);
 
   const handleDelete = (user) => {
-    askConfirmation("Confirm Deletion", `Remove administrator access for ${user.name}?`, async () => {
+    askConfirmation("Confirm Deletion", `Remove user access for ${user.name}?`, async () => {
         try {
           await axios.delete(`http://localhost:5000/api/users/${user.id}`);
           showSnackbar("User removed", "success");
@@ -43,7 +43,7 @@ const UserManagement = () => {
         showSnackbar("User updated", "success");
       } else {
         await axios.post('http://localhost:5000/api/users', formData);
-        showSnackbar("Admin added", "success");
+        showSnackbar("User added", "success");
       }
       setShowModal(false);
       fetchUsers(); 
@@ -105,7 +105,7 @@ const UserManagement = () => {
       {showModal && (
           <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <form onSubmit={handleSubmit} className="bg-gray-800 p-8 rounded-2xl shadow-2xl max-w-md w-full border border-gray-700">
-            <h3 className="text-xl font-bold mb-6">{isEditing ? 'Update Admin' : 'Add New Admin'}</h3>
+            <h3 className="text-xl font-bold mb-6">{isEditing ? 'Update User' : 'Add New User'}</h3>
             <div className="space-y-5">
               <div>
                 <label className="block text-sm font-semibold text-gray-400 mb-2">Full Name</label>

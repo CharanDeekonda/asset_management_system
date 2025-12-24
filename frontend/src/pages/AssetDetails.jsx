@@ -84,7 +84,13 @@ const AssetDetails = () => {
               <tbody className="divide-y divide-gray-700">
                 {assets.map((asset) => (
                   <tr key={asset.asset_id} className="hover:bg-gray-700/30 transition">
-                    <td className="px-6 py-4 font-bold text-blue-400 hover:text-white cursor-pointer">{asset.asset_id}</td>
+                    <td className="px-6 py-4 font-bold text-blue-400 hover:text-white cursor-pointer">
+                      <button 
+                      onClick={() => navigate(`/assets/history/${asset.asset_id}`)}
+                      className="transition-all text-left"
+                    >
+                      {asset.asset_id}
+                    </button></td>
                     <td className="px-6 py-4">
                       <div className="font-medium">{asset.brand} {asset.model}</div>
                       {typeName === 'Laptop' && <div className="text-xs text-gray-500 mt-1">{asset.processor}  {asset.ram}</div>}

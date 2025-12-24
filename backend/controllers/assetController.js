@@ -1,6 +1,6 @@
 const pool = require('../config/db');
 
-
+// asset-types
 exports.getAllAssetTypes = async (req, res) => {
     try {
         const [rows] = await pool.query('SELECT * FROM asset_types ORDER BY name ASC');
@@ -9,6 +9,47 @@ exports.getAllAssetTypes = async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 };
+
+exports.createAssetType = async (req, res) => {
+    const { name } = req.body;
+    try {
+        await pool.query('INSERT INTO asset_types (name) VALUES (?)', [name]);
+        res.status(201).json({ message: "Asset type added successfully" });
+    } catch (err) {
+        if (err.code === 'ER_DUP_ENTRY') {
+            return res.status(400).json({ error: "This asset type already exists." });
+        }
+        res.status(500).json({ error: err.message });
+    }
+};
+
+// ----------------------------------------------
+
+// assets
+exports.getAssetDetailsByCategory = async (req, res) => {
+    const { typeName } = req.params;
+    try {
+        const query = `
+            SELECT 
+                a.asset_id, 
+                a.brand, 
+                a.model, 
+                ah.employee_id, 
+                ah.employee_name, 
+                DATE_FORMAT(ah.from_date, '%Y-%m-%d') as assign_date
+            FROM assets a
+            JOIN asset_types at ON a.type_id = at.id
+            LEFT JOIN assignment_history ah ON a.asset_id = ah.asset_id AND ah.to_date IS NULL
+            WHERE at.name = ?
+        `;
+        const [rows] = await pool.query(query, [typeName]);
+        res.status(200).json(rows);
+    } catch (err) {
+        console.error("SQL Error Details:", err.message); 
+        res.status(500).json({ error: "Database query failed" });
+    }
+};
+
 exports.addAsset = async (req, res) => {
     const { 
         asset_id, type_id, brand, model, bought_on, 
@@ -35,6 +76,7 @@ exports.addAsset = async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 };
+
 exports.getAssetsByType = async (req, res) => {
     try {
         const [rows] = await pool.query(
@@ -46,19 +88,6 @@ exports.getAssetsByType = async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 };
-exports.createAssetType = async (req, res) => {
-    const { name } = req.body;
-    try {
-        await pool.query('INSERT INTO asset_types (name) VALUES (?)', [name]);
-        res.status(201).json({ message: "Asset type added successfully" });
-    } catch (err) {
-        if (err.code === 'ER_DUP_ENTRY') {
-            return res.status(400).json({ error: "This asset type already exists." });
-        }
-        res.status(500).json({ error: err.message });
-    }
-};
-
 
 exports.getAssetDetails = async (req, res) => {
     try {
@@ -68,16 +97,27 @@ exports.getAssetDetails = async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 };
 
+
 exports.getAssetHistory = async (req, res) => {
     try {
         const [rows] = await pool.query(
-            `SELECT employee_id, employee_name, DATE_FORMAT(from_date, '%Y-%m-%d') as from_date, 
-             DATE_FORMAT(to_date, '%Y-%m-%d') as to_date, remarks 
-             FROM assignment_history WHERE asset_id = ? ORDER BY id DESC`, [req.params.assetId]
+            `SELECT 
+                employee_id, 
+                employee_name, 
+                DATE_FORMAT(from_date, '%d-%m-%Y') as from_date, 
+                DATE_FORMAT(to_date, '%d-%m-%Y') as to_date, 
+                remarks 
+             FROM assignment_history 
+             WHERE asset_id = ? 
+             ORDER BY id DESC`, 
+            [req.params.assetId]
         );
         res.json(rows);
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) { 
+        res.status(500).json({ error: err.message }); 
+    }
 };
+
 
 exports.reassignAsset = async (req, res) => {
     const { asset_id, new_employee_id, new_employee_name, old_employee_id, remarks } = req.body;
@@ -99,8 +139,14 @@ exports.reassignAsset = async (req, res) => {
         res.status(500).json({ error: "Reassignment failed" });
     } finally { connection.release(); }
 };
-//----------------------
-// 1. Updated getAssetsByTypeName (Cleaned)
+// --------------------------------------
+
+
+
+
+
+
+
 exports.getAssetsByTypeName = async (req, res) => {
     const { typeName } = req.params;
     try {
@@ -125,29 +171,7 @@ exports.getAssetsByTypeName = async (req, res) => {
 };
 
 // 2. Updated getAssetDetailsByCategory (Cleaned and Fixed)
-exports.getAssetDetailsByCategory = async (req, res) => {
-    const { typeName } = req.params;
-    try {
-        const query = `
-            SELECT 
-                a.asset_id, 
-                a.brand, 
-                a.model, 
-                ah.employee_id, 
-                ah.employee_name, 
-                DATE_FORMAT(ah.from_date, '%Y-%m-%d') as assign_date
-            FROM assets a
-            JOIN asset_types at ON a.type_id = at.id
-            LEFT JOIN assignment_history ah ON a.asset_id = ah.asset_id AND ah.to_date IS NULL
-            WHERE at.name = ?
-        `;
-        const [rows] = await pool.query(query, [typeName]);
-        res.status(200).json(rows);
-    } catch (err) {
-        console.error("SQL Error Details:", err.message); 
-        res.status(500).json({ error: "Database query failed" });
-    }
-};
+
 
 exports.assignNewAsset = async (req, res) => {
     const { 

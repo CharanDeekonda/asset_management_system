@@ -8,17 +8,34 @@ import UserManagement from './pages/UserManagement';
 import { useConfirm } from './context/ConfirmContext';
 import { useSnackbar } from './context/SnackbarContext';
 import AssetDetails from './pages/AssetDetails';
+import AssetHistory from './pages/AssetHistory';
 
 function App() {
-  const [authUser, setAuthUser] = useState(null);
+  const [authUser, setAuthUser] = useState(() => {
+  const savedUser = localStorage.getItem('user');
+  return savedUser ? JSON.parse(savedUser) : null;
+});
+  const [loading, setLoading] = useState(true);
   const location = useLocation();
 
   const askConfirmation = useConfirm();
   const showSnackbar = useSnackbar();
 
   useEffect(() => {
-    console.log("Current Auth State:", authUser);
-  }, [authUser]);
+  const checkAuth = async () => {
+    try {
+      const res = await axios.get('http://localhost:5000/api/auth/me', { withCredentials: true });
+      if (res.data.user) {
+        setAuthUser(res.data.user);
+      }
+    } catch (err) {
+      setAuthUser(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+  checkAuth();
+}, []);
 
   const handleLogout = () => {
     askConfirmation(
@@ -36,6 +53,15 @@ function App() {
       }
     );
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-white font-bold animate-pulse">Authenticating...</div>
+      </div>
+    );
+  }
+
   if (!authUser) {
     return (
       <Routes>
@@ -90,6 +116,7 @@ function App() {
           <Route path="/" element={<AssetsLanding />} />
           <Route path="/users" element={<UserManagement />} />
           <Route path="/assets/:typeName" element={<AssetDetails />} />
+          <Route path="/assets/history/:assetId" element={<AssetHistory />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>

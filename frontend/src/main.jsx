@@ -9,7 +9,7 @@ import { ConfirmProvider } from './context/ConfirmContext';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <GoogleOAuthProvider clientId="821960464116-ne6ja3a55s5ljod3dhsu2nft190v26vt.apps.googleusercontent.com">
+    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
       <BrowserRouter>
         <SnackbarProvider>
         <ConfirmProvider> 
