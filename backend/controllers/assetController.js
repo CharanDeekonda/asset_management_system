@@ -34,6 +34,11 @@ exports.getAssetDetailsByCategory = async (req, res) => {
                 a.asset_id, 
                 a.brand, 
                 a.model, 
+                a.ram,              
+                a.processor,        
+                a.os,               
+                a.storage_capacity, 
+                a.screen_size,      
                 ah.employee_id, 
                 ah.employee_name, 
                 DATE_FORMAT(ah.from_date, '%Y-%m-%d') as assign_date
@@ -43,9 +48,9 @@ exports.getAssetDetailsByCategory = async (req, res) => {
             WHERE at.name = ?
         `;
         const [rows] = await pool.query(query, [typeName]);
+        console.log("Fetched Assets:", rows);
         res.status(200).json(rows);
     } catch (err) {
-        console.error("SQL Error Details:", err.message); 
         res.status(500).json({ error: "Database query failed" });
     }
 };
@@ -90,11 +95,17 @@ exports.getAssetsByType = async (req, res) => {
 };
 
 exports.getAssetDetails = async (req, res) => {
+    const { assetId } = req.params;
     try {
-        const [rows] = await pool.query('SELECT * FROM assets WHERE asset_id = ?', [req.params.assetId]);
+        const [rows] = await pool.query(
+            'SELECT asset_id, brand, model, ram, processor, os, storage_capacity, screen_size FROM assets WHERE asset_id = ?', 
+            [assetId]
+        );
         if (rows.length === 0) return res.status(404).json({ error: "Asset not found" });
-        res.json(rows[0]);
-    } catch (err) { res.status(500).json({ error: err.message }); }
+        res.json(rows[0]); 
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 };
 
 
@@ -206,5 +217,57 @@ exports.assignNewAsset = async (req, res) => {
         res.status(500).json({ error: err.message });
     } finally {
         connection.release();
+    }
+};
+
+// ----------------------------------------
+// backend/controllers/assetController.js
+
+exports.getAssetRepairs = async (req, res) => {
+    const { assetId } = req.params;
+    try {
+        const query = `
+            SELECT id, 
+                   DATE_FORMAT(date_reported, '%Y-%m-%d') as date_reported, 
+                   issue_reported, 
+                   amount, 
+                   resolver_comments 
+            FROM repair_history 
+            WHERE asset_id = ? 
+            ORDER BY date_reported DESC`;
+        const [rows] = await pool.query(query, [assetId]);
+        res.json(rows);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+// 2. Add Repair
+exports.addRepair = async (req, res) => {
+    const { asset_id, date_reported, issue_reported, amount, resolver_comments } = req.body;
+    try {
+        const query = `
+            INSERT INTO repair_history 
+            (asset_id, date_reported, issue_reported, amount, resolver_comments) 
+            VALUES (?, ?, ?, ?, ?)`;
+        await pool.query(query, [asset_id, date_reported, issue_reported, amount, resolver_comments]);
+        res.status(201).json({ message: "Repair record added successfully" });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+// 3. End Current Assignment
+exports.endAssignment = async (req, res) => {
+    const { asset_id, employee_id, remarks } = req.body;
+    try {
+        const query = `
+            UPDATE assignment_history 
+            SET to_date = CURDATE(), remarks = ? 
+            WHERE asset_id = ? AND employee_id = ? AND to_date IS NULL`;
+        await pool.query(query, [remarks, asset_id, employee_id]);
+        res.json({ message: "Assignment closed successfully" });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
     }
 };

@@ -72,43 +72,69 @@ const AssetDetails = () => {
           </div>
 
           <div className="bg-gray-800 rounded-2xl shadow-2xl overflow-hidden border border-gray-700">
-            <table className="w-full text-left">
-              <thead className="bg-gray-900/50 border-b border-gray-700 text-sm font-semibold text-gray-400">
-                <tr>
-                  <th className="px-6 py-4 ">Asset ID</th>
-                  <th className="px-6 py-4">Specs</th>
-                  <th className="px-6 py-4">Employee</th>
-                  <th className="px-6 py-4 text-center">Assign Date</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-700">
-                {assets.map((asset) => (
-                  <tr key={asset.asset_id} className="hover:bg-gray-700/30 transition">
-                    <td className="px-6 py-4 font-bold text-blue-400 hover:text-white cursor-pointer">
-                      <button 
-                      onClick={() => navigate(`/assets/history/${asset.asset_id}`)}
-                      className="transition-all text-left"
-                    >
-                      {asset.asset_id}
-                    </button></td>
-                    <td className="px-6 py-4">
-                      <div className="font-medium">{asset.brand} {asset.model}</div>
-                      {typeName === 'Laptop' && <div className="text-xs text-gray-500 mt-1">{asset.processor}  {asset.ram}</div>}
-                    </td>
-                    <td className="px-6 py-4">
-                        <div className="text-sm">{asset.employee_name}</div>
-                        <div className="text-xs text-gray-500">{asset.employee_id}</div>
-                    </td>
-                    <td className="px-6 py-4 text-center text-gray-400 text-sm">{asset.assign_date}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+  <table className="w-full text-left">
+    <thead className="bg-gray-900/50 border-b border-gray-700 text-sm font-semibold text-gray-400">
+      <tr>
+        <th className="px-6 py-4">Asset ID</th>
+        <th className="px-6 py-4">Brand & Model</th>
+        {typeName === 'Laptop' && (
+          <>
+            <th className="px-6 py-4">Processor & RAM</th>
+            <th className="px-6 py-4">Storage & OS</th>
+            {/* Added new header column */}
+            <th className="px-6 py-4">Screen Size</th>
+          </>
+        )}
+        <th className="px-6 py-4">Assigned To</th>
+        <th className="px-6 py-4 text-center">Assign Date</th>
+      </tr>
+    </thead>
+    <tbody className="divide-y divide-gray-700">
+      {assets.map((asset) => (
+        <tr key={asset.asset_id} className="hover:bg-gray-700/30 transition">
+          <td className="px-6 py-4 font-bold text-blue-400">
+            <button 
+              onClick={() => navigate(`/assets/history/${asset.asset_id}`)}
+              className="hover:text-white transition-all text-left"
+            >
+              {asset.asset_id}
+            </button>
+          </td>
+          <td className="px-6 py-4 text-white">
+            <div className="font-medium">{asset.brand}</div>
+            <div className="text-xs text-gray-500">{asset.model}</div>
+          </td>
+
+          {typeName === 'Laptop' && (
+            <>
+              <td className="px-6 py-4 text-sm">
+                <div className="text-gray-200">{asset.processor || '-'}</div>
+                <div className="text-xs text-gray-500">{asset.ram ? `${asset.ram} RAM` : '-'}</div>
+              </td>
+              <td className="px-6 py-4 text-sm">
+                <div className="text-gray-200">{asset.storage_capacity || '-'}</div> 
+                <div className="text-xs text-gray-500">{asset.os || '-'}</div>
+              </td>
+              {/* Added new data column */}
+              <td className="px-6 py-4 text-sm text-gray-200">
+                {asset.screen_size || '-'}
+              </td>
+            </>
+          )}
+
+          <td className="px-6 py-4">
+            <div className="text-sm text-gray-200">{asset.employee_name}</div>
+            <div className="text-xs text-gray-500">{asset.employee_id}</div>
+          </td>
+          <td className="px-6 py-4 text-center text-gray-400 text-sm">{asset.assign_date}</td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
 
         <Dialog open={showAssignModal} onClose={() => setShowAssignModal(false)} maxWidth="sm" fullWidth>
-          <DialogTitle sx={{ fontWeight: 'bold' }}>Assign {typeName}</DialogTitle>
+          <DialogTitle sx={{ fontWeight: 'bold' }}>Register & Assign {typeName}</DialogTitle>
           <DialogContent dividers>
             <Grid container spacing={2} sx={{ mt: 1 }}>
                 <Grid item xs={6}><TextField fullWidth size="small" label="Asset ID" value={assignData.asset_id} onChange={e => setAssignData({...assignData, asset_id: e.target.value})} /></Grid>
@@ -117,20 +143,25 @@ const AssetDetails = () => {
                 
                 {typeName === 'Laptop' && (
                     <>
-                        <Grid item xs={6}><TextField fullWidth size="small" label="RAM" onChange={e => setAssignData({...assignData, ram: e.target.value})} /></Grid>
-                        <Grid item xs={6}><TextField fullWidth size="small" label="CPU" onChange={e => setAssignData({...assignData, processor: e.target.value})} /></Grid>
+                        
+                        <Grid item xs={6}><TextField fullWidth size="small" label="Processor" value={assignData.processor} onChange={e => setAssignData({...assignData, processor: e.target.value})} /></Grid>
+                        <Grid item xs={6}><TextField fullWidth size="small" label="RAM" value={assignData.ram} onChange={e => setAssignData({...assignData, ram: e.target.value})} /></Grid>
+                        <Grid item xs={6}><TextField fullWidth size="small" label="Storage" value={assignData.storage_capacity} onChange={e => setAssignData({...assignData, storage_capacity: e.target.value})} /></Grid>
+                        <Grid item xs={6}><TextField fullWidth size="small" label="OS" value={assignData.os} onChange={e => setAssignData({...assignData, os: e.target.value})} /></Grid>
+                        <Grid item xs={12}><TextField fullWidth size="small" label="Screen Size" value={assignData.screen_size} onChange={e => setAssignData({...assignData, screen_size: e.target.value})} /></Grid>
                     </>
                 )}
                 
-                <Grid item xs={6}><TextField fullWidth size="small" label="Emp ID" onChange={e => setAssignData({...assignData, employee_id: e.target.value})} /></Grid>
-                <Grid item xs={6}><TextField fullWidth size="small" label="Emp Name" onChange={e => setAssignData({...assignData, employee_name: e.target.value})} /></Grid>
+                <Grid item xs={6}><TextField fullWidth size="small" label="Emp ID" value={assignData.employee_id} onChange={e => setAssignData({...assignData, employee_id: e.target.value})} /></Grid>
+                <Grid item xs={6}><TextField fullWidth size="small" label="Emp Name" value={assignData.employee_name} onChange={e => setAssignData({...assignData, employee_name: e.target.value})} /></Grid>
             </Grid>
           </DialogContent>
           <DialogActions sx={{ p: 2 }}>
             <Button onClick={() => setShowAssignModal(false)} color="inherit">Cancel</Button>
-            <Button onClick={handleAssignSubmit} variant="contained">Register & Assign</Button>
+            <Button onClick={handleAssignSubmit} variant="contained" >Register & Assign</Button>
           </DialogActions>
         </Dialog>
+      </div>
       </div>
     </ThemeProvider>
   );

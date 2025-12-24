@@ -9,6 +9,7 @@ import { useConfirm } from './context/ConfirmContext';
 import { useSnackbar } from './context/SnackbarContext';
 import AssetDetails from './pages/AssetDetails';
 import AssetHistory from './pages/AssetHistory';
+import AssetDeepView from './pages/AssetDeepView';
 
 function App() {
   const [authUser, setAuthUser] = useState(() => {
@@ -117,6 +118,7 @@ function App() {
           <Route path="/users" element={<UserManagement />} />
           <Route path="/assets/:typeName" element={<AssetDetails />} />
           <Route path="/assets/history/:assetId" element={<AssetHistory />} />
+          <Route path="/assets/deep-view/:assetId/:empId" element={<AssetDeepView />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
