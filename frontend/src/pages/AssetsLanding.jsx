@@ -63,20 +63,39 @@ const AssetsLanding = () => {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {assetTypes.map((type) => (
-            <div 
-              key={type.id} 
-              onClick={() => navigate(`/assets/${type.name}`)} 
-              className="group bg-gray-800 p-8 rounded-2xl border border-gray-700 hover:bg-gray-700 hover:border-blue-500 transition-all cursor-pointer flex flex-col items-center text-center shadow-xl"
-            >
-              {/* <div className="text-blue-500 mb-6 bg-gray-900 p-5 rounded-2xl group-hover:scale-110 transition-transform">
-                {iconMap[type.name] || iconMap.Default}
-              </div> */}
-              <h3 className="font-bold text-xl">{type.name}</h3>
-              <p className="text-gray-500 text-sm mt-2">Manage Items</p>
-            </div>
-          ))}
-        </div>
+  {assetTypes.map((type) => (
+    <div 
+      key={type.id} 
+      onClick={() => navigate(`/assets/${type.name}`)} 
+      className="group bg-gray-800 p-6 rounded-2xl border border-gray-700 hover:bg-gray-700 hover:border-blue-500 transition-all cursor-pointer shadow-xl"
+    >
+      <div className="flex flex-col items-center text-center mb-4">
+        <h3 className="font-bold text-xl">{type.name}</h3>
+        {/* <p className="text-gray-500 text-[10px] uppercase font-bold mt-1 tracking-widest">Manage Items</p> */}
+      </div>
+
+      <div className="space-y-2 mt-4 pt-4 border-t border-gray-700/50">
+        <div className="flex justify-between items-center text-sm">
+    <span className="text-gray-400">Total Capacity</span>
+    <span className="font-mono font-bold text-red-400">{type.total_limit}</span>
+  </div>
+  <div className="flex justify-between items-center text-sm">
+    <span className="text-gray-400">Inventory</span>
+    <span className="font-mono font-bold text-green-400">
+      {type.inventory_count}
+    </span>
+  </div>
+  <div className="flex justify-between items-center text-sm">
+    <span className="text-gray-400">Assigned</span>
+    <span className="font-mono font-bold text-blue-400">
+      {type.assigned_count}
+    </span>
+  </div>
+</div>
+
+    </div>
+  ))}
+</div>
 
         {showAddModal && (
           <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">

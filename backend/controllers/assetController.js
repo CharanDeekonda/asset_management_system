@@ -3,8 +3,38 @@ const pool = require('../config/db');
 // asset-types
 exports.getAllAssetTypes = async (req, res) => {
     try {
-        const [rows] = await pool.query('SELECT * FROM asset_types ORDER BY name ASC');
-        res.json(rows);
+        const query = `
+            SELECT 
+                at.id, 
+                at.name, 
+                at.total_limit,
+                (SELECT COUNT(*) 
+                 FROM assignment_history ah 
+                 WHERE ah.asset_id IN (SELECT a.asset_id FROM assets a WHERE a.type_id = at.id)
+                 AND ah.to_date IS NULL) AS assigned_count,
+                (SELECT COUNT(*) 
+                 FROM assets a 
+                 WHERE a.type_id = at.id) AS total_registered
+            FROM asset_types at
+            WHERE at.delete_stat = 0
+            ORDER BY at.name ASC
+        `;
+        
+        const [rows] = await pool.query(query);
+        const formattedRows = rows.map(row => {
+            const assigned = row.assigned_count || 0;
+            const total = row.total_limit || 20; 
+            
+            return {
+                id: row.id,
+                name: row.name,
+                total_limit: total,
+                assigned_count: assigned,
+                inventory_count: total - assigned 
+            };
+        });
+        //  console.log(rows);
+        res.json(formattedRows);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -48,7 +78,6 @@ exports.getAssetDetailsByCategory = async (req, res) => {
             WHERE at.name = ?
         `;
         const [rows] = await pool.query(query, [typeName]);
-        console.log("Fetched Assets:", rows);
         res.status(200).json(rows);
     } catch (err) {
         res.status(500).json({ error: "Database query failed" });
@@ -120,7 +149,10 @@ exports.getAssetHistory = async (req, res) => {
                 remarks 
              FROM assignment_history 
              WHERE asset_id = ? 
-             ORDER BY id DESC`, 
+             ORDER BY 
+                CASE WHEN to_date IS NULL THEN 0 ELSE 1 END, 
+                from_date DESC,                             
+                id DESC`,                                   
             [req.params.assetId]
         );
         res.json(rows);
@@ -197,23 +229,30 @@ exports.assignNewAsset = async (req, res) => {
         const [typeRow] = await connection.query('SELECT id FROM asset_types WHERE name = ?', [typeName]);
         if (typeRow.length === 0) throw new Error("Category not found");
         const type_id = typeRow[0].id;
-        await connection.query(
-            `INSERT INTO assets 
+        const assetQuery = `
+            INSERT INTO assets 
             (asset_id, type_id, brand, model, ram, processor, screen_size, os, storage_capacity) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [asset_id, type_id, brand, model, ram, processor, screen_size, os, storage_capacity]
-        );
-
-        await connection.query(
-            'INSERT INTO assignment_history (asset_id, employee_id, employee_name, from_date) VALUES (?, ?, ?, ?)',
-            [asset_id, employee_id, employee_name, from_date]
-        );
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+        
+        await connection.query(assetQuery, [
+            asset_id, type_id, brand, model, 
+            ram || null, 
+            processor || null, 
+            screen_size || null, 
+            os || null, 
+            storage_capacity || null
+        ]);
+        const historyQuery = `
+            INSERT INTO assignment_history (asset_id, employee_id, employee_name, from_date, to_date) 
+            VALUES (?, ?, ?, ?, NULL)`;
+            
+        await connection.query(historyQuery, [asset_id, employee_id, employee_name, from_date]);
 
         await connection.commit();
         res.status(201).json({ message: "Asset successfully registered and assigned" });
     } catch (err) {
         await connection.rollback();
-        console.error("Assignment Error:", err.message);
+        console.error("SQL Error:", err.message);
         res.status(500).json({ error: err.message });
     } finally {
         connection.release();
@@ -267,6 +306,22 @@ exports.endAssignment = async (req, res) => {
             WHERE asset_id = ? AND employee_id = ? AND to_date IS NULL`;
         await pool.query(query, [remarks, asset_id, employee_id]);
         res.json({ message: "Assignment closed successfully" });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+exports.softDeleteAsset = async (req, res) => {
+    const { typeName } = req.params;
+    try {
+        const [result] = await pool.query(
+            "UPDATE asset_types SET delete_stat = 1 WHERE name = ?", 
+            [typeName]
+        );
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: "Asset type not found" });
+        }
+        res.json({ message: `${typeName} deleted successfully` });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

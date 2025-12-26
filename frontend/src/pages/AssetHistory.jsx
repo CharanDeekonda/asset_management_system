@@ -35,6 +35,7 @@ const AssetHistory = () => {
         fetchAssetData();
     }, [assetId]);
 
+    // console.log("Asset Details222   :", history);
     const isAssetFree = history.length === 0 || (history[0] && history[0].to_date !== null && history[0].to_date !== "-");
     const handleFormSubmit = (e) => {
         e.preventDefault();
@@ -126,10 +127,11 @@ const AssetHistory = () => {
                     </div>
                 </div>
 
-                {details && isAssetFree && !isAssigning && (
+                {details && !isAssigning && isAssetFree && (
                     <div className="mb-6 flex justify-end">
                         <button
                             onClick={() => setIsAssigning(true)}
+                            disabled={!isAssetFree}
                             className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-all shadow-lg"
                         >
                             <UserPlus size={20} /> Assign Asset to New Employee
