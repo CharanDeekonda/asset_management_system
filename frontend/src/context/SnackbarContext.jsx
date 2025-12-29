@@ -1,6 +1,7 @@
 import React, { createContext, useState, useContext } from 'react';
 import { Snackbar, Alert, ThemeProvider, createTheme } from '@mui/material';
 import { theme } from '../theme';
+import { orange } from '@mui/material/colors';
 
 const SnackbarContext = createContext();
 
@@ -9,8 +10,8 @@ const snackbarTheme = createTheme({
     MuiAlert: {
       styleOverrides: {
         filledSuccess: {
-          backgroundColor: '#ea580c', 
-          color: '#ffffff',
+          backgroundColor: 'white', 
+          color: orange[800],
           fontWeight: 'bold',
         },
         root: {

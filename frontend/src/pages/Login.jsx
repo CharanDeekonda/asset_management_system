@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { ShieldCheck } from 'lucide-react';
 import { useSnackbar } from '../context/SnackbarContext';
 import { theme } from '../theme';
-
+import mylogo from '../assets/logo1.jpeg';
 const Login = ({ setAuthUser }) => {
   const navigate = useNavigate();
   const showSnackbar = useSnackbar();
@@ -29,9 +29,13 @@ const Login = ({ setAuthUser }) => {
     <div className={`min-h-screen flex items-center justify-center bg-orange-50 p-4`}>
       <div className={`max-w-md w-full bg-orange-500 hover:bg-orange-600  rounded-3xl ${theme.cardShadowHover} p-10 text-center border-2 border-orange-50 transition-all duration-300`}>
         <div className="flex justify-center mb-6">
-          <div className={`p-4 bg-white rounded-2xl text-orange-500 shadow-lg`}>
-            <ShieldCheck size={50} />
-          </div>
+          <div className="bg-white p-2 rounded shadow-sm flex items-center justify-center overflow-hidden">
+                        <img
+                          src="https://gradiouslmsapp.s3.ap-south-1.amazonaws.com/EmailImages/logo.png"
+                          alt="Logo"
+                          className="h-12 w-auto object-contain"
+                        />
+                      </div>
         </div>
 
         <h1 className={`text-3xl font-black text-white mb-2 uppercase tracking-tight`}>Asset Management</h1>

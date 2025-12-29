@@ -11,8 +11,7 @@ import AssetDetails from './pages/AssetDetails';
 import AssetHistory from './pages/AssetHistory';
 import AssetDeepView from './pages/AssetDeepView';
 import { theme } from './theme';
-import myLogo from './assets/react.svg';
-
+import mylogo from './assets/logo1.jpeg';
 function App() {
   const [authUser, setAuthUser] = useState(() => {
     const savedUser = localStorage.getItem('user');
@@ -76,14 +75,14 @@ function App() {
 
   return (
     <div className={`min-h-screen ${theme.pageBg} flex flex-col`}>
-      <nav className={`${theme.navBg} ${theme.cardShadow} border-b ${theme.navBorder} px-6 py-4 flex items-center justify-between sticky top-0 z-50`}>
+      <nav className={`${theme.navBg} ${theme.cardShadow} border-b ${theme.navBorder} px-6 py-4  flex items-center justify-between sticky top-0 z-50`}>
         <div className="flex items-center gap-8">
-          <div className="flex items-center gap-3  border-r border-orange-500/50">
-            <div className="bg-white p-1 rounded-lg shadow-sm flex items-center justify-center overflow-hidden">
+          <div className="flex items-center gap-3 border-r border-orange-500/50">
+            <div className="bg-white p-0.5 rounded shadow-sm flex items-center justify-center overflow-hidden">
               <img
-                src={myLogo}
-                alt="System Logo"
-                className="h-8 w-auto object-contain"
+              src={mylogo}
+                alt="Logo"
+                className="h-12 w-12 object-contain"
               />
             </div>
           </div>
