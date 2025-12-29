@@ -1,9 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { ArrowLeft, History, Monitor, Cpu, Layers, UserPlus, CheckCircle, Wrench,Plus } from 'lucide-react';
+import { ArrowLeft, History, Monitor, Cpu, Layers, UserPlus, CheckCircle, Wrench, Plus } from 'lucide-react';
 import { useSnackbar } from '../context/SnackbarContext'; 
-import { Dialog, DialogTitle, TextField,DialogContent, DialogActions, Button, Typography } from '@mui/material';
+import { Dialog, DialogTitle, TextField, DialogContent, DialogActions, Button, Typography, ThemeProvider, createTheme } from '@mui/material';
+import { theme } from '../theme';
+
+const orangeMuiTheme = createTheme({
+    palette: {
+        mode: 'light',
+        primary: { main: '#ea580c' },
+        background: { paper: '#ffffff', default: '#ffffff' }
+    },
+    components: {
+        MuiButton: {
+            styleOverrides: {
+                root: { borderRadius: '12px', fontWeight: 'bold', textTransform: 'none' }
+            }
+        },
+        MuiTextField: {
+            styleOverrides: {
+                root: { '& .MuiOutlinedInput-root': { borderRadius: '12px' } }
+            }
+        }
+    }
+});
 
 const AssetHistory = () => {
     const { assetId } = useParams();
@@ -17,10 +38,18 @@ const AssetHistory = () => {
 
     const [isAssigning, setIsAssigning] = useState(false);
     const [showConfirmDialog, setShowConfirmDialog] = useState(false); 
+    const [showRepairForm, setShowRepairForm] = useState(false);
+    
     const [newAssignForm, setNewAssignForm] = useState({
         employee_id: '',
         employee_name: '',
         from_date: new Date().toISOString().split('T')[0]
+    });
+
+    const [repairData, setRepairData] = useState({
+        issue: '',
+        amount: '',
+        date_reported: new Date().toISOString().split('T')[0]
     });
 
     const fetchAssetData = async () => {
@@ -65,274 +94,250 @@ const AssetHistory = () => {
             setShowConfirmDialog(false);
         }
     };
-    const [showRepairForm, setShowRepairForm] = useState(false);
-const [repairData, setRepairData] = useState({
-    issue: '',
-    amount: '',
-    date_reported: new Date().toISOString().split('T')[0]
-});
 
-const handleRepairSubmit = async (e) => {
-    e.preventDefault();
-    const activeEmployee = history.find(h => h.to_date === null);
-    
-    if (!activeEmployee) {
-        showSnackbar("No active employee found to assign repair to.", "error");
-        return;
-    }
+    const handleRepairSubmit = async (e) => {
+        e.preventDefault();
+        const activeEmployee = history.find(h => h.to_date === null);
+        
+        if (!activeEmployee) {
+            showSnackbar("No active employee found to assign repair to.", "error");
+            return;
+        }
 
-    try {
-        await axios.post('http://localhost:5000/api/assets/add-repair', {
-            asset_id: assetId,
-            date_reported: repairData.date_reported,
-            issue_reported: repairData.issue,
-            amount: repairData.amount,
-            resolver_comments: `Reported by ${activeEmployee.employee_name}` 
-        });
+        try {
+            await axios.post('http://localhost:5000/api/assets/add-repair', {
+                asset_id: assetId,
+                date_reported: repairData.date_reported,
+                issue_reported: repairData.issue,
+                amount: repairData.amount,
+                resolver_comments: `Reported by ${activeEmployee.employee_name}` 
+            });
 
-        showSnackbar("Repair record added successfully", "success");
-        setShowRepairForm(false);
-        setRepairData({ issue: '', amount: '', date_reported: new Date().toISOString().split('T')[0] });
-        fetchAssetData();
-    } catch (err) {
-        showSnackbar("Failed to add repair", "error");
-    }
-};
+            showSnackbar("Repair record added successfully", "success");
+            setShowRepairForm(false);
+            setRepairData({ issue: '', amount: '', date_reported: new Date().toISOString().split('T')[0] });
+            fetchAssetData();
+        } catch (err) {
+            showSnackbar("Failed to add repair", "error");
+        }
+    };
 
     return (
-        <div className="min-h-screen bg-gray-900 text-white p-8">
-            <div className="max-w-6xl mx-auto">
-                <div className="flex items-center justify-between mb-8">
-                    <div className="flex items-center gap-4">
-                        <button onClick={() => navigate(-1)} className="p-2 hover:bg-gray-800 rounded-full text-blue-500 transition">
-                            <ArrowLeft size={28} />
-                        </button>
-                        <h1 className="text-3xl font-bold">Asset History</h1>
-                    </div>
-                </div>
-
-                <div className="bg-gray-800 border border-gray-700 rounded-2xl p-8 mb-8 shadow-2xl relative overflow-hidden">
-                    <div className="relative z-10">
-                        <div className="flex justify-between items-start mb-6">
-                            <div>
-                                <p className="text-blue-400 font-mono text-sm uppercase tracking-widest mb-1">Asset ID</p>
-                                <h2 className="text-5xl font-black">{assetId}</h2>
-                            </div>
-                            <div className="text-right">
-                                <p className="text-gray-400 text-sm mb-1 uppercase font-bold tracking-tighter">Current Device</p>
-                                <h3 className="text-2xl font-bold text-white">{details?.brand} {details?.model}</h3>
-                            </div>
-                        </div>
-
-                        {details?.ram && (
-                            <div className="grid grid-cols-2 md:grid-cols-5 gap-6 mt-6 pt-6 border-t border-gray-700/50">
-                                <div className="flex items-center gap-3">
-                                    <Cpu className="text-blue-500" size={20} />
-                                    <div>
-                                        <p className="text-[10px] text-gray-500 uppercase font-bold">Processor</p>
-                                        <p className="text-sm font-semibold text-gray-200">{details.processor || '-'}</p>
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                    <Layers className="text-purple-500" size={20} />
-                                    <div>
-                                        <p className="text-[10px] text-gray-500 uppercase font-bold">Memory</p>
-                                        <p className="text-sm font-semibold text-gray-200">{details.ram || '-'}</p>
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                    <span className="text-orange-500 text-lg">💾</span>
-                                    <div>
-                                        <p className="text-[10px] text-gray-500 uppercase font-bold">Storage</p>
-                                        <p className="text-sm font-semibold text-gray-200">{details.storage_capacity || '-'}</p>
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                    <Monitor className="text-green-500" size={20} />
-                                    <div>
-                                        <p className="text-[10px] text-gray-500 uppercase font-bold">Display</p>
-                                        <p className="text-sm font-semibold text-gray-200">{details.screen_size || '-'}</p>
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                    <span className="text-yellow-500 text-lg">⚙️</span>
-                                    <div>
-                                        <p className="text-[10px] text-gray-500 uppercase font-bold">OS</p>
-                                        <p className="text-sm font-semibold text-gray-200">{details.os || '-'}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                {details && !isAssigning && isAssetFree && (
-                    <div className="mb-6 flex justify-end">
-                        <button
-                            onClick={() => setIsAssigning(true)}
-                            className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-all shadow-lg"
-                        >
-                            <UserPlus size={20} /> Assign Asset to New Employee
-                        </button>
-                    </div>
-                )}
-
-                {isAssigning && (
-                    <div className="bg-gray-800 border border-green-500/50 p-8 rounded-3xl shadow-2xl mb-8 animate-in fade-in zoom-in">
-                        <div className="flex justify-between items-center mb-6">
-                            <h3 className="text-xl font-bold text-green-400 uppercase tracking-tighter">New Assignment</h3>
-                            <button onClick={() => setIsAssigning(false)} className="text-gray-500 hover:text-white text-xs underline">Cancel</button>
-                        </div>
-                        <form onSubmit={handleFormSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <input
-                                required
-                                placeholder="Employee ID"
-                                className="bg-gray-900 border border-gray-700 rounded-xl p-3 text-sm text-white outline-none focus:ring-1 focus:ring-green-500"
-                                onChange={(e) => setNewAssignForm({ ...newAssignForm, employee_id: e.target.value })}
-                            />
-                            <input
-                                required
-                                placeholder="Employee Name"
-                                className="bg-gray-900 border border-gray-700 rounded-xl p-3 text-sm text-white outline-none focus:ring-1 focus:ring-green-500"
-                                onChange={(e) => setNewAssignForm({ ...newAssignForm, employee_name: e.target.value })}
-                            />
-                            <button type="submit" className="bg-green-600 hover:bg-green-700 rounded-xl font-bold text-xs uppercase tracking-widest">
-                                Confirm Assignment
-                            </button>
-                        </form>
-                    </div>
-                )}
-
-                <div className="bg-gray-800 rounded-2xl shadow-2xl overflow-hidden border border-gray-700">
-                    <div className="p-6 border-b border-gray-700 flex items-center justify-between">
+        <ThemeProvider theme={orangeMuiTheme}>
+            <div className={`min-h-screen ${theme.pageBg} ${theme.mainText} pt-10 p-8`}>
+                <div className="max-w-6xl mx-auto">
+                    <div className="flex items-center justify-between mb-8">
                         <div className="flex items-center gap-4">
-                            <div className="flex items-center gap-2">
-                                <History size={20} className="text-blue-500" />
-                                <span className="font-bold">
-                                    {viewMode === 'assignment' ? 'Assignment History' : 'Repair History'}
-                                </span>
-                            </div>
-                            <div className="flex bg-gray-900 p-1 rounded-lg border border-gray-700">
-                                <button 
-                                    onClick={() => setViewMode('assignment')}
-                                    className={`px-3 py-1 rounded-md text-[10px] font-bold uppercase transition-all ${viewMode === 'assignment' ? 'bg-blue-600 text-white' : 'text-gray-500'}`}
-                                >
-                                    Assignments
-                                </button>
-                                <button 
-                                    onClick={() => setViewMode('repair')}
-                                    className={`px-3 py-1 rounded-md text-[10px] font-bold uppercase transition-all ${viewMode === 'repair' ? 'bg-orange-600 text-white' : 'text-gray-500'}`}
-                                >
-                                    Repairs
-                                </button>
-                            </div>
+                            <button onClick={() => navigate(-1)} className={`p-2 hover:${theme.iconBg} rounded-full ${theme.iconText} transition`}>
+                                <ArrowLeft size={28} />
+                            </button>
+                            <h1 className="text-3xl font-black uppercase tracking-tight">Asset History</h1>
                         </div>
-                        {viewMode === 'repair' && (
-        <button 
-            onClick={() => setShowRepairForm(true)}
-            className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all shadow-lg"
-        >
-            <Plus size={16} /> Add Repair
-        </button>
-    )}
                     </div>
 
-                    <table className="w-full text-left">
-                        {viewMode === 'assignment' ? (
-                            <>
-                                <thead className="bg-gray-900/50 text-sm font-semibold text-gray-400">
-                                    <tr>
-                                        <th className="px-6 py-4">Employee Name</th>
-                                        <th className="px-6 py-4">Employee ID</th>
-                                        <th className="px-6 py-4">From Date</th>
-                                        <th className="px-6 py-4">To Date</th>
-                                        <th className="px-6 py-4">Remarks</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-700">
-                                    {history.map((entry, index) => (
-                                        <tr key={index}
-                                            onClick={() => navigate(`/assets/deep-view/${assetId}/${entry.employee_id}`)}
-                                            className="hover:bg-gray-700/50 cursor-pointer transition-all border-b border-gray-700/50"
-                                        >
-                                            <td className="px-6 py-4 font-medium text-white">{entry.employee_name}</td>
-                                            <td className="px-6 py-4 text-gray-400 font-mono text-sm">{entry.employee_id}</td>
-                                            <td className="px-6 py-4 text-gray-300">{entry.from_date}</td>
-                                            <td className="px-6 py-4 text-gray-300">
-                                                {entry.to_date ? entry.to_date : <span className="text-green-500 font-bold px-2 py-1 bg-green-500/10 rounded">Active / Present</span>}
-                                            </td>
-                                            <td className="px-6 py-4 text-sm text-gray-500 italic">{entry.remarks || "-"}</td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </>
-                        ) : (
-                            <>
-                                <thead className="bg-gray-900/50 text-sm font-semibold text-gray-400">
-                                    <tr>
-                                        <th className="px-6 py-4">Employee Name</th>
-                                        <th className="px-6 py-4">Issue</th>
-                                        <th className="px-6 py-4">Amount</th>
-                                        <th className="px-6 py-4">Date Reported</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-700">
-                                    {repairs.length > 0 ? repairs.map((repair, index) => (
-                                        <tr key={index} className="hover:bg-gray-700/50 transition-all border-b border-gray-700/50">
-                                            <td className="px-6 py-4 font-medium text-white">{repair.employee_name}</td>
-                                            <td className="px-6 py-4 text-gray-300">{repair.issue_reported}</td>
-                                            <td className="px-6 py-4 text-orange-400 font-bold">₹{repair.amount}</td>
-                                            <td className="px-6 py-4 text-gray-400 font-mono text-sm">{repair.date_reported}</td>
-                                        </tr>
-                                    )) : (
-                                        <tr>
-                                            <td colSpan="4" className="px-6 py-10 text-center text-gray-500 italic">No repair history found for this device.</td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                            </>
-                        )}
-                    </table>
-                </div>
-            </div>
+                    <div className={`bg-white border-2 ${theme.cardBorder} rounded-2xl p-8 mb-8 ${theme.cardShadowHover} relative overflow-hidden`}>
+                        <div className="relative z-10">
+                            <div className="flex justify-between items-start mb-6">
+                                <div>
+                                    <p className={`${theme.iconText} font-mono text-sm uppercase tracking-widest mb-1 font-bold`}>Asset ID</p>
+                                    <h2 className="text-5xl font-black">{assetId}</h2>
+                                </div>
+                                <div className="text-right">
+                                    <p className={`${theme.mutedText} text-sm mb-1 uppercase font-bold tracking-tighter`}>Current Device</p>
+                                    <h3 className={`text-2xl font-bold ${theme.mainText}`}>{details?.brand} {details?.model}</h3>
+                                </div>
+                            </div>
 
-            <Dialog open={showRepairForm} onClose={() => setShowRepairForm(false)} maxWidth="xs" fullWidth>
-    <DialogTitle sx={{ bgcolor: '#111827', color: 'white', fontWeight: 'bold' }}>
-        Log New Repair
-    </DialogTitle>
-    <DialogContent sx={{ bgcolor: '#111827', pt: 2 }}>
-        <Typography variant="caption" sx={{ color: '#9ca3af', mb: 2, display: 'block' }}>
-            Current Holder: <b>{history.find(h => h.to_date === null)?.employee_name || 'N/A'}</b>
-        </Typography>
-        <div className="space-y-4 mt-2">
-            <TextField
-                fullWidth label="Issue Description" multiline rows={3} variant="outlined"
-                value={repairData.issue}
-                onChange={(e) => setRepairData({...repairData, issue: e.target.value})}
-                sx={{ '& .MuiOutlinedInput-root': { color: 'white', '& fieldset': { borderColor: '#374151' } }, '& .MuiInputLabel-root': { color: '#9ca3af' } }}
-            />
-            <TextField
-                fullWidth label="Repair Amount (₹)" type="number" variant="outlined"
-                value={repairData.amount}
-                onChange={(e) => setRepairData({...repairData, amount: e.target.value})}
-                sx={{ '& .MuiOutlinedInput-root': { color: 'white', '& fieldset': { borderColor: '#374151' } }, '& .MuiInputLabel-root': { color: '#9ca3af' } }}
-            />
-        </div>
-    </DialogContent>
-    <DialogActions sx={{ bgcolor: '#111827', p: 2 }}>
-        <Button onClick={() => setShowRepairForm(false)} sx={{ color: '#9ca3af' }}>Cancel</Button>
-        <Button 
-            onClick={handleRepairSubmit} 
-            variant="contained" 
-            color="warning" 
-            sx={{ fontWeight: 'bold' }}
-            disabled={!repairData.issue || !repairData.amount}
-        >
-            Save Repair Log
-        </Button>
-    </DialogActions>
-</Dialog>
-        </div>
+                            {details?.ram && (
+                                <div className={`grid grid-cols-2 md:grid-cols-5 gap-6 mt-6 pt-6 border-t ${theme.tableRowBorder}`}>
+                                    <div className="flex items-center gap-3">
+                                        <Cpu className={theme.iconText} size={20} />
+                                        <div>
+                                            <p className={`text-[10px] ${theme.mutedText} uppercase font-bold`}>Processor</p>
+                                            <p className={`text-sm font-semibold ${theme.mainText}`}>{details.processor || '-'}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <Layers className="text-purple-600" size={20} />
+                                        <div>
+                                            <p className={`text-[10px] ${theme.mutedText} uppercase font-bold`}>Memory</p>
+                                            <p className={`text-sm font-semibold ${theme.mainText}`}>{details.ram || '-'}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-orange-500 text-lg">💾</span>
+                                        <div>
+                                            <p className={`text-[10px] ${theme.mutedText} uppercase font-bold`}>Storage</p>
+                                            <p className={`text-sm font-semibold ${theme.mainText}`}>{details.storage_capacity || '-'}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <Monitor className="text-green-600" size={20} />
+                                        <div>
+                                            <p className={`text-[10px] ${theme.mutedText} uppercase font-bold`}>Display</p>
+                                            <p className={`text-sm font-semibold ${theme.mainText}`}>{details.screen_size || '-'}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-yellow-600 text-lg">⚙️</span>
+                                        <div>
+                                            <p className={`text-[10px] ${theme.mutedText} uppercase font-bold`}>OS</p>
+                                            <p className={`text-sm font-semibold ${theme.mainText}`}>{details.os || '-'}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {details && !isAssigning && isAssetFree && (
+                        <div className="mb-6 flex justify-end">
+                            <button
+                                onClick={() => setIsAssigning(true)}
+                                className={`${theme.btnPrimary} px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-all shadow-lg shadow-orange-100`}
+                            >
+                                <UserPlus size={20} /> Assign Asset to New Employee
+                            </button>
+                        </div>
+                    )}
+
+                    {isAssigning && (
+                        <div className={`bg-orange-50 border-2 ${theme.cardBorderHover} p-8 rounded-3xl shadow-xl mb-8`}>
+                            <div className="flex justify-between items-center mb-6">
+                                <h3 className={`text-xl font-black ${theme.iconText} uppercase tracking-tighter`}>New Assignment</h3>
+                                <button onClick={() => setIsAssigning(false)} className={`${theme.mutedText} hover:${theme.mainText} text-xs font-bold uppercase underline`}>Cancel</button>
+                            </div>
+                            <form onSubmit={handleFormSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <input
+                                    required
+                                    placeholder="Employee ID"
+                                    className={`bg-white border-2 ${theme.cardBorder} rounded-xl p-3 text-sm ${theme.mainText} outline-none focus:border-orange-500`}
+                                    onChange={(e) => setNewAssignForm({ ...newAssignForm, employee_id: e.target.value })}
+                                />
+                                <input
+                                    required
+                                    placeholder="Employee Name"
+                                    className={`bg-white border-2 ${theme.cardBorder} rounded-xl p-3 text-sm ${theme.mainText} outline-none focus:border-orange-500`}
+                                    onChange={(e) => setNewAssignForm({ ...newAssignForm, employee_name: e.target.value })}
+                                />
+                                <button type="submit" className={`${theme.btnPrimary} rounded-xl font-bold text-xs uppercase tracking-widest`}>
+                                    Confirm Assignment
+                                </button>
+                            </form>
+                        </div>
+                    )}
+
+                    <div className={`bg-white rounded-2xl ${theme.cardShadowHover} overflow-hidden border-2 ${theme.cardBorder}`}>
+                        <div className={`p-6 ${theme.tableHeaderBg} border-b ${theme.cardBorder} flex items-center justify-between`}>
+                            <div className="flex items-center gap-4">
+                                <div className="flex items-center gap-2">
+                                    <History size={20} className={theme.iconText} />
+                                    <span className={`font-black uppercase tracking-tight ${theme.mainText}`}>
+                                        {viewMode === 'assignment' ? 'Assignment History' : 'Repair History'}
+                                    </span>
+                                </div>
+                                <div className={`flex bg-white p-1 rounded-lg border ${theme.cardBorder}`}>
+                                    <button onClick={() => setViewMode('assignment')} className={`px-4 py-1.5 rounded-md text-[10px] font-black uppercase transition-all ${viewMode === 'assignment' ? theme.btnPrimary : theme.mutedText}`}>Assignments</button>
+                                    <button onClick={() => setViewMode('repair')} className={`px-4 py-1.5 rounded-md text-[10px] font-black uppercase transition-all ${viewMode === 'repair' ? theme.btnPrimary : theme.mutedText}`}>Repairs</button>
+                                </div>
+                            </div>
+                            {viewMode === 'repair' && (
+                                <button onClick={() => setShowRepairForm(true)} className={`${theme.btnPrimary} px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all`}>
+                                    <Plus size={16} /> Add Repair
+                                </button>
+                            )}
+                        </div>
+
+                        <table className="w-full text-left">
+                            {viewMode === 'assignment' ? (
+                                <>
+                                    <thead className={`${theme.tableHeaderBg} text-xs font-bold ${theme.tableHeaderText} uppercase`}>
+                                        <tr>
+                                            <th className="px-6 py-4">Employee Name</th>
+                                            <th className="px-6 py-4">Employee ID</th>
+                                            <th className="px-6 py-4">From Date</th>
+                                            <th className="px-6 py-4">To Date</th>
+                                            <th className="px-6 py-4">Remarks</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className={`divide-y ${theme.tableRowBorder}`}>
+                                        {history.map((entry, index) => (
+                                            <tr key={index}
+                                                onClick={() => navigate(`/assets/deep-view/${assetId}/${entry.employee_id}`)}
+                                                className={`${theme.tableRowHover} cursor-pointer transition-all`}
+                                            >
+                                                <td className={`px-6 py-4 font-bold ${theme.mainText}`}>{entry.employee_name}</td>
+                                                <td className={`px-6 py-4 ${theme.mutedText} font-mono text-sm`}>{entry.employee_id}</td>
+                                                <td className={`px-6 py-4 ${theme.mainText} opacity-70`}>{entry.from_date}</td>
+                                                <td className={`px-6 py-4 ${theme.mainText} opacity-70`}>
+                                                    {entry.to_date ? entry.to_date : <span className={`${theme.statusActive} px-3 py-1 rounded-full font-black text-[10px] uppercase`}>Active</span>}
+                                                </td>
+                                                <td className={`px-6 py-4 text-sm ${theme.mutedText} italic`}>{entry.remarks || "-"}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </>
+                            ) : (
+                                <>
+                                    <thead className={`${theme.tableHeaderBg} text-xs font-bold ${theme.tableHeaderText} uppercase`}>
+                                        <tr>
+                                            <th className="px-6 py-4">Employee Name</th>
+                                            <th className="px-6 py-4">Issue</th>
+                                            <th className="px-6 py-4">Amount</th>
+                                            <th className="px-6 py-4">Date Reported</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className={`divide-y ${theme.tableRowBorder}`}>
+                                        {repairs.length > 0 ? repairs.map((repair, index) => (
+                                            <tr key={index} className={`${theme.tableRowHover} transition-all`}>
+                                                <td className={`px-6 py-4 font-bold ${theme.mainText}`}>{repair.employee_name}</td>
+                                                <td className={`px-6 py-4 ${theme.mainText} opacity-80`}>{repair.issue_reported}</td>
+                                                <td className={`px-6 py-4 font-black ${theme.statusRepairs}`}>₹{repair.amount}</td>
+                                                <td className={`px-6 py-4 ${theme.mutedText} font-mono text-sm`}>{repair.date_reported}</td>
+                                            </tr>
+                                        )) : (
+                                            <tr><td colSpan="4" className={`px-6 py-10 text-center ${theme.mutedText} font-bold uppercase tracking-widest italic`}>No repair history found.</td></tr>
+                                        )}
+                                    </tbody>
+                                </>
+                            )}
+                        </table>
+                    </div>
+                </div>
+
+                <Dialog open={showConfirmDialog} onClose={() => setShowConfirmDialog(false)} PaperProps={{ sx: { borderRadius: '24px' } }}>
+                    <DialogTitle sx={{ fontWeight: '900', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <CheckCircle className="text-green-600" /> Confirm Assignment
+                    </DialogTitle>
+                    <DialogContent>
+                        <Typography variant="body1" sx={{ color: 'text.secondary', fontWeight: '500' }}>
+                            Are you sure you want to assign asset <b className="text-orange-600">{assetId}</b> to <b className="text-orange-600">{newAssignForm.employee_name} ({newAssignForm.employee_id})</b>?
+                        </Typography>
+                    </DialogContent>
+                    <DialogActions sx={{ p: 3 }}>
+                        <Button onClick={() => setShowConfirmDialog(false)} sx={{ color: 'text.secondary' }}>Cancel</Button>
+                        <Button onClick={processAssignment} variant="contained" color="primary">Yes, Confirm</Button>
+                    </DialogActions>
+                </Dialog>
+
+                <Dialog open={showRepairForm} onClose={() => setShowRepairForm(false)} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: '24px' } }}>
+                    <DialogTitle sx={{ fontWeight: '900', textTransform: 'uppercase' }}>Log New Repair</DialogTitle>
+                    <DialogContent>
+                        <Typography variant="caption" sx={{ color: 'text.secondary', mb: 2, display: 'block', fontWeight: 'bold' }}>
+                            Current Holder: <span className="text-orange-600">{history.find(h => h.to_date === null)?.employee_name || 'N/A'}</span>
+                        </Typography>
+                        <div className="space-y-4 mt-2">
+                            <TextField fullWidth label="Issue Description" multiline rows={3} variant="outlined" value={repairData.issue} onChange={(e) => setRepairData({...repairData, issue: e.target.value})} />
+                            <TextField fullWidth label="Repair Amount (₹)" type="number" variant="outlined" value={repairData.amount} onChange={(e) => setRepairData({...repairData, amount: e.target.value})} />
+                        </div>
+                    </DialogContent>
+                    <DialogActions sx={{ p: 3 }}>
+                        <Button onClick={() => setShowRepairForm(false)} sx={{ color: 'text.secondary' }}>Cancel</Button>
+                        <Button onClick={handleRepairSubmit} variant="contained" sx={{ bgcolor: '#f97316', '&:hover': { bgcolor: '#ea580c' } }} disabled={!repairData.issue || !repairData.amount}>Save Repair Log</Button>
+                    </DialogActions>
+                </Dialog>
+            </div>
+        </ThemeProvider>
     );
 };
 

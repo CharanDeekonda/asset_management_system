@@ -4,17 +4,30 @@ import axios from 'axios';
 import { ArrowLeft, Plus, Trash2 } from 'lucide-react';
 import { useSnackbar } from '../context/SnackbarContext';
 import { useConfirm } from '../context/ConfirmContext';
+import { theme } from '../theme';
 import {
     Dialog, DialogTitle, DialogContent, DialogActions,
     TextField, Button, Grid, createTheme, ThemeProvider
 } from '@mui/material';
 
-const darkTheme = createTheme({
+const orangeMuiTheme = createTheme({
     palette: {
-        mode: 'dark',
-        primary: { main: '#3b82f6' },
-        background: { paper: '#1f2937', default: '#111827' }
+        mode: 'light',
+        primary: { main: '#ea580c' }, 
+        background: { paper: '#ffffff', default: '#ffffff' }
     },
+    components: {
+        MuiButton: {
+            styleOverrides: {
+                root: { borderRadius: '12px', fontWeight: 'bold', textTransform: 'none' }
+            }
+        },
+        MuiTextField: {
+            styleOverrides: {
+                root: { '& .MuiOutlinedInput-root': { borderRadius: '12px' } }
+            }
+        }
+    }
 });
 
 const AssetDetails = () => {
@@ -93,38 +106,38 @@ const AssetDetails = () => {
     };
 
     return (
-        <ThemeProvider theme={darkTheme}>
-            <div className="min-h-screen bg-gray-900 text-white p-8">
+        <ThemeProvider theme={orangeMuiTheme}>
+            <div className={`min-h-screen ${theme.pageBg} ${theme.mainText} p-8`}>
                 <div className="max-w-7xl mx-auto">
                     <div className="flex justify-between items-center mb-8">
                         <div className="flex items-center gap-4">
                             <button
                                 onClick={() => navigate('/')}
-                                className="p-2 hover:bg-gray-800 rounded-full text-blue-500 transition"
+                                className={`p-2 hover:${theme.iconBg} rounded-full ${theme.iconText} transition`}
                             >
                                 <ArrowLeft size={28} />
                             </button>
-                            <h1 className="text-3xl font-bold">{typeName} Inventory</h1>
+                            <h1 className="text-3xl font-black uppercase tracking-tight">{typeName} Inventory</h1>
                         </div>
                         <div className="flex items-center gap-3">
                             <button
                                 onClick={() => setShowAssignModal(true)}
-                                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl flex items-center gap-2 shadow-lg transition-all"
+                                className={`${theme.btnPrimary} px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 shadow-lg transition-all`}
                             >
                                 <Plus size={20} /> Assign New {typeName}
                             </button>
                             <button
                                 onClick={handleDeleteType}
-                                className="bg-red-600 hover:bg-red-700 text-white px-6 py-2.5 rounded-xl flex items-center gap-2 shadow-lg transition-all"
+                                className={`${theme.btnSecondary} border-red-100 text-red-600 hover:bg-red-50 px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 transition-all`}
                             >
                                 <Trash2 size={16} /> Delete {typeName}
                             </button>
                         </div>
                     </div>
 
-                    <div className="bg-gray-800 rounded-2xl shadow-2xl overflow-hidden border border-gray-700">
+                    <div className={`${theme.cardBg} rounded-3xl ${theme.cardShadowHover} overflow-hidden border ${theme.cardBorder}`}>
                         <table className="w-full text-left">
-                            <thead className="bg-gray-900/50 border-b border-gray-700 text-sm font-semibold text-gray-400">
+                            <thead className={`${theme.tableHeaderBg} border-b ${theme.cardBorder} text-xs font-bold uppercase ${theme.tableHeaderText}`}>
                                 <tr>
                                     <th className="px-6 py-4">Asset ID</th>
                                     <th className="px-6 py-4">Brand & Model</th>
@@ -139,55 +152,55 @@ const AssetDetails = () => {
                                     <th className="px-6 py-4 text-center">Assign Date</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-700">
+                            <tbody className={`divide-y ${theme.tableRowBorder}`}>
                                 {assets.map((asset) => (
-                                    <tr key={asset.asset_id} className="hover:bg-gray-700/30 transition">
-                                        <td className="px-6 py-4 font-bold text-blue-400">
+                                    <tr key={asset.asset_id} className={`${theme.tableRowHover} transition`}>
+                                        <td className="px-6 py-4">
                                             <button
                                                 onClick={() => navigate(`/assets/history/${asset.asset_id}`)}
-                                                className="hover:text-white transition-all text-left"
+                                                className={`font-black ${theme.statusAssigned} hover:${theme.statusRepairs} transition-all text-left`}
                                             >
                                                 {asset.asset_id}
                                             </button>
                                         </td>
-                                        <td className="px-6 py-4 text-white">
-                                            <div className="font-medium">{asset.brand}</div>
-                                            <div className="text-xs text-gray-500">{asset.model}</div>
+                                        <td className="px-6 py-4">
+                                            <div className={`font-bold ${theme.mainText}`}>{asset.brand}</div>
+                                            <div className={`text-xs ${theme.mutedText} font-medium`}>{asset.model}</div>
                                         </td>
 
                                         {typeName === 'Laptop' && (
                                             <>
                                                 <td className="px-6 py-4 text-sm">
-                                                    <div className="text-gray-200">{asset.processor || '-'}</div>
-                                                    <div className="text-xs text-gray-500">{asset.ram ? `${asset.ram} RAM` : '-'}</div>
+                                                    <div className={`${theme.mainText} font-semibold opacity-80`}>{asset.processor || '-'}</div>
+                                                    <div className={`text-xs ${theme.mutedText}`}>{asset.ram ? `${asset.ram} RAM` : '-'}</div>
                                                 </td>
                                                 <td className="px-6 py-4 text-sm">
-                                                    <div className="text-gray-200">{asset.storage_capacity || '-'}</div>
-                                                    <div className="text-xs text-gray-500">{asset.os || '-'}</div>
+                                                    <div className={`${theme.mainText} font-semibold opacity-80`}>{asset.storage_capacity || '-'}</div>
+                                                    <div className={`text-xs ${theme.mutedText}`}>{asset.os || '-'}</div>
                                                 </td>
-                                                <td className="px-6 py-4 text-sm text-gray-200">
+                                                <td className={`px-6 py-4 text-sm ${theme.mainText} font-medium opacity-80`}>
                                                     {asset.screen_size || '-'}
                                                 </td>
                                             </>
                                         )}
 
                                         <td className="px-6 py-4">
-                                            <div className="text-sm text-gray-200">{asset.employee_name}</div>
-                                            <div className="text-xs text-gray-500">{asset.employee_id}</div>
+                                            <div className={`text-sm font-bold ${theme.mainText}`}>{asset.employee_name}</div>
+                                            <div className={`text-xs ${theme.mutedText} font-mono`}>{asset.employee_id}</div>
                                         </td>
-                                        <td className="px-6 py-4 text-center text-gray-400 text-sm">{asset.assign_date}</td>
+                                        <td className={`px-6 py-4 text-center ${theme.mutedText} font-bold text-xs uppercase`}>{asset.assign_date}</td>
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
                         {assets.length === 0 && (
-                            <div className="p-20 text-center text-gray-500 italic">No assets registered under this category.</div>
+                            <div className={`p-20 text-center ${theme.mutedText} font-bold uppercase tracking-widest italic`}>No assets registered under this category.</div>
                         )}
                     </div>
 
-                    <Dialog open={showAssignModal} onClose={() => setShowAssignModal(false)} maxWidth="sm" fullWidth>
-                        <DialogTitle sx={{ fontWeight: 'bold' }}>Register & Assign {typeName}</DialogTitle>
-                        <DialogContent dividers>
+                    <Dialog open={showAssignModal} onClose={() => setShowAssignModal(false)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: '24px' } }}>
+                        <DialogTitle sx={{ fontWeight: '900', textTransform: 'uppercase', tracking: 'tight', pt: 3, color: '#111827' }}>Register & Assign {typeName}</DialogTitle>
+                        <DialogContent>
                             <Grid container spacing={2} sx={{ mt: 1 }}>
                                 <Grid item xs={6}><TextField fullWidth size="small" label="Asset ID" value={assignData.asset_id} onChange={e => setAssignData({ ...assignData, asset_id: e.target.value })} /></Grid>
                                 <Grid item xs={6}><TextField fullWidth size="small" label="Brand" value={assignData.brand} onChange={e => setAssignData({ ...assignData, brand: e.target.value })} /></Grid>
@@ -207,9 +220,9 @@ const AssetDetails = () => {
                                 <Grid item xs={6}><TextField fullWidth size="small" label="Emp Name" value={assignData.employee_name} onChange={e => setAssignData({ ...assignData, employee_name: e.target.value })} /></Grid>
                             </Grid>
                         </DialogContent>
-                        <DialogActions sx={{ p: 2 }}>
-                            <Button onClick={() => setShowAssignModal(false)} color="inherit">Cancel</Button>
-                            <Button onClick={handleAddAndAssign} variant="contained" disabled={!assignData.asset_id || !assignData.employee_id}>Register & Assign</Button>
+                        <DialogActions sx={{ p: 3 }}>
+                            <Button onClick={() => setShowAssignModal(false)} sx={{ color: 'text.secondary' }}>Cancel</Button>
+                            <Button onClick={handleAddAndAssign} variant="contained" color="primary" disabled={!assignData.asset_id || !assignData.employee_id}>Register & Assign</Button>
                         </DialogActions>
                     </Dialog>
                 </div>

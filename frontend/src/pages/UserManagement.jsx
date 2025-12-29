@@ -3,6 +3,7 @@ import axios from 'axios';
 import { UserPlus, Edit2, X, Trash2 } from 'lucide-react';
 import { useSnackbar } from '../context/SnackbarContext';
 import { useConfirm } from '../context/ConfirmContext';
+import { theme } from '../theme';
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
@@ -36,7 +37,6 @@ const UserManagement = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const action = isEditing ? 'update' : 'add';
     try {
       if (isEditing) {
         await axios.put(`http://localhost:5000/api/users/${selectedUser.id}`, formData);
@@ -51,21 +51,21 @@ const UserManagement = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-8">
+    <div className={`min-h-screen ${theme.pageBg} ${theme.mainText} p-8`}>
       <div className="max-w-6xl mx-auto">
         <div className="flex justify-between items-center mb-8">
-          <h2 className="text-3xl font-bold">User Management</h2>
+          <h2 className="text-3xl font-black uppercase tracking-tight">User Management</h2>
           <button
             onClick={() => { setIsEditing(false); setFormData({ name: '', email: '' }); setShowModal(true); }}
-            className="bg-blue-600 text-white px-5 py-2.5 rounded-xl flex items-center gap-2 hover:bg-blue-700 transition shadow-lg shadow-blue-900/20"
+            className={`${theme.btnPrimary} px-5 py-2.5 rounded-xl flex items-center gap-2 transition shadow-lg`}
           >
             <UserPlus size={18} /> Add user
           </button>
         </div>
 
-        <div className="bg-gray-800 rounded-2xl shadow-2xl overflow-hidden border border-gray-700">
+        <div className={`${theme.cardBg} rounded-2xl ${theme.cardShadow} overflow-hidden border ${theme.cardBorder}`}>
           <table className="w-full text-left">
-            <thead className="bg-gray-900/50 border-b border-gray-700 text-sm font-semibold text-gray-400">
+            <thead className={`${theme.tableHeaderBg} border-b ${theme.cardBorder} text-sm font-bold ${theme.tableHeaderText} uppercase`}>
               <tr>
                 <th className="px-6 py-4 text-center w-20">#</th>
                 <th className="px-6 py-4">Full Name</th>
@@ -73,12 +73,12 @@ const UserManagement = () => {
                 <th className="px-6 py-4 text-center">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-700">
+            <tbody className={`divide-y ${theme.tableRowBorder}`}>
               {users.map((user, index) => (
-                <tr key={user.id} className="hover:bg-gray-700/50 transition">
-                  <td className="px-6 py-4 text-center text-gray-500">{index + 1}</td>
+                <tr key={user.id} className={`${theme.tableRowHover} transition`}>
+                  <td className={`px-6 py-4 text-center ${theme.mutedText} font-medium`}>{index + 1}</td>
                   <td
-                    className="px-6 py-4 font-medium cursor-pointer text-blue-400 hover:text-white transition-all"
+                    className={`px-6 py-4 font-black cursor-pointer ${theme.statusAssigned} hover:${theme.statusRepairs} transition-all`}
                     onClick={() => {
                       setIsEditing(true);
                       setSelectedUser(user);
@@ -88,37 +88,65 @@ const UserManagement = () => {
                   >
                     {user.name}
                   </td>
-                  <td className="px-6 py-4 text-gray-400">{user.email}</td>
+                  <td className={`px-6 py-4 ${theme.mutedText} font-medium`}>{user.email}</td>
                   <td className="px-6 py-4 text-center">
                     <div className="flex items-center justify-center gap-2">
-                      <button onClick={() => { setIsEditing(true); setSelectedUser(user); setFormData({ name: user.name, email: user.email }); setShowModal(true); }} className="p-2 text-blue-400 hover:bg-blue-900/30 rounded-full transition"><Edit2 size={18} /></button>
-                      <button onClick={() => handleDelete(user)} className="p-2 text-red-400 hover:bg-red-900/30 rounded-full transition"><Trash2 size={18} /></button>
+                      <button 
+                        onClick={() => { setIsEditing(true); setSelectedUser(user); setFormData({ name: user.name, email: user.email }); setShowModal(true); }} 
+                        className={`p-2 ${theme.statusAssigned} hover:${theme.iconBg} rounded-full transition`}
+                      >
+                        <Edit2 size={18} />
+                      </button>
+                      <button 
+                        onClick={() => handleDelete(user)} 
+                        className={`p-2 text-red-600 hover:bg-red-50 rounded-full transition`}
+                      >
+                        <Trash2 size={18} />
+                      </button>
                     </div>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
+          {users.length === 0 && (
+            <div className={`p-20 text-center ${theme.mutedText} italic font-bold uppercase tracking-widest`}>
+              No users registered in the system.
+            </div>
+          )}
         </div>
       </div>
 
       {showModal && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <form onSubmit={handleSubmit} className="bg-gray-800 p-8 rounded-2xl shadow-2xl max-w-md w-full border border-gray-700">
-            <h3 className="text-xl font-bold mb-6">{isEditing ? 'Update User' : 'Add New User'}</h3>
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <form onSubmit={handleSubmit} className={`${theme.cardBg} p-8 rounded-3xl shadow-2xl max-w-md w-full border ${theme.cardBorder}`}>
+            <h3 className={`text-2xl font-black mb-6 uppercase tracking-tight ${theme.mainText}`}>
+              {isEditing ? 'Update User' : 'Add New User'}
+            </h3>
             <div className="space-y-5">
               <div>
-                <label className="block text-sm font-semibold text-gray-400 mb-2">Full Name</label>
-                <input required className="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2 text-white outline-none focus:ring-2 focus:ring-blue-500" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
+                <label className={`block text-xs font-bold ${theme.mutedText} mb-2 uppercase tracking-wider`}>Full Name</label>
+                <input 
+                  required 
+                  className={`w-full bg-gray-50 border-2 ${theme.cardBorder} rounded-xl px-4 py-2 ${theme.mainText} outline-none focus:${theme.cardBorderHover} transition-all`} 
+                  value={formData.name} 
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })} 
+                />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-400 mb-2">Email Address</label>
-                <input required type="email" className="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2 text-white outline-none focus:ring-2 focus:ring-blue-500" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
+                <label className={`block text-xs font-bold ${theme.mutedText} mb-2 uppercase tracking-wider`}>Email Address</label>
+                <input 
+                  required 
+                  type="email" 
+                  className={`w-full bg-gray-50 border-2 ${theme.cardBorder} rounded-xl px-4 py-2 ${theme.mainText} outline-none focus:${theme.cardBorderHover} transition-all`} 
+                  value={formData.email} 
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })} 
+                />
               </div>
             </div>
             <div className="flex justify-end gap-3 mt-8">
-              <button type="button" onClick={() => setShowModal(false)} className="px-5 py-2 text-gray-400 hover:text-white transition">Cancel</button>
-              <button type="submit" className="px-5 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition">Save User</button>
+              <button type="button" onClick={() => setShowModal(false)} className={`px-5 py-2 ${theme.mutedText} font-bold hover:${theme.mainText} transition`}>Cancel</button>
+              <button type="submit" className={`px-6 py-2 ${theme.btnPrimary} rounded-xl font-bold shadow-md transition`}>Save User</button>
             </div>
           </form>
         </div>

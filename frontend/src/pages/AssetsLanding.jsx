@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Laptop, Mouse, Keyboard, Monitor, Plus, Package } from 'lucide-react';
 import { useConfirm } from '../context/ConfirmContext';
 import { useSnackbar } from '../context/SnackbarContext';
+import { theme } from '../theme';
 
 const iconMap = {
   Laptop: <Laptop size={40} />,
@@ -46,78 +47,85 @@ const AssetsLanding = () => {
   };
 
   return (
-    <div className='min-h-screen bg-gray-900 text-white p-8'>
+    <div className={`min-h-screen ${theme.pageBg} ${theme.mainText} p-8`}>
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-10">
           <div>
-            <h1 className="text-3xl font-bold">Asset Inventory</h1>
-            <p className="text-gray-400 mt-1">Select to view and add details</p>
+            <h1 className="text-3xl font-black uppercase tracking-tight">Asset Inventory</h1>
+            <p className={`${theme.mutedText} mt-1`}>Select to view and add details</p>
           </div>
           
           <button 
             onClick={() => setShowAddModal(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl flex items-center gap-2 shadow-lg shadow-blue-900/20 transition-all"
+            className={`${theme.btnPrimary} px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 shadow-lg transition-all`}
           >
             <Plus size={20} /> Add Asset Type
           </button>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-  {assetTypes.map((type) => (
-    <div 
-      key={type.id} 
-      onClick={() => navigate(`/assets/${type.name}`)} 
-      className="group bg-gray-800 p-6 rounded-2xl border border-gray-700 hover:bg-gray-700 hover:border-gray-500 transition-all cursor-pointer shadow-xl"
-    >
-      <div className="flex flex-col items-center text-center mb-4">
-        <h3 className="font-bold text-xl">{type.name}</h3>
-        {/* <p className="text-gray-500 text-[10px] uppercase font-bold mt-1 tracking-widest">Manage Items</p> */}
-      </div>
+          {assetTypes.map((type) => (
+            <div 
+              key={type.id} 
+              onClick={() => navigate(`/assets/${type.name}`)} 
+              className={`group ${theme.cardBg} p-6 rounded-2xl border-2 ${theme.cardBorder} hover:${theme.tableRowHover} hover:${theme.cardBorderHover} transition-all cursor-pointer ${theme.cardShadow} hover:${theme.cardShadowHover}`}
+            >
+              <div className="flex flex-col items-center text-center mb-4">
+                {/* <div className={`${theme.iconText} mb-4 p-4 ${theme.iconBg} rounded-2xl group-hover:scale-110 transition-transform`}>
+                  {iconMap[type.name] || iconMap.Default}
+                </div> */}
+                <h3 className={`font-black text-xl uppercase tracking-tight ${theme.mainText}`}>{type.name}</h3>
+              </div>
 
-      <div className="space-y-2 mt-4 pt-4 border-t border-gray-700/50">
-        <div className="flex justify-between items-center text-sm">
-    <span className="text-gray-400">Total Capacity</span>
-    <span className="font-mono font-bold text-red-400">{type.total_limit}</span>
-  </div>
-  <div className="flex justify-between items-center text-sm">
-    <span className="text-gray-400">Inventory</span>
-    <span className="font-mono font-bold text-green-400">
-      {type.inventory_count}
-    </span>
-  </div>
-  <div className="flex justify-between items-center text-sm">
-    <span className="text-gray-400">Assigned</span>
-    <span className="font-mono font-bold text-blue-400">
-      {type.assigned_count}
-    </span>
-  </div>
-  <div className="flex justify-between items-center text-sm">
-    <span className="text-gray-400">Total Repairs</span>
-    <span className="font-mono font-bold text-orange-400">{type.repair_count}</span>
-  </div>
-  
-</div>
-
-    </div>
-  ))}
-</div>
+              <div className={`space-y-2 mt-4 pt-4 border-t ${theme.tableRowBorder}`}>
+                <div className="flex justify-between items-center text-sm font-medium">
+                  <span className={`${theme.mutedText} uppercase text-[10px] font-bold`}>Total Capacity</span>
+                  <span className={`font-mono font-bold ${theme.statusCapacity}`}>{type.total_limit}</span>
+                </div>
+                <div className="flex justify-between items-center text-sm font-medium">
+                  <span className={`${theme.mutedText} uppercase text-[10px] font-bold`}>Inventory</span>
+                  <span className={`font-mono font-bold text-green-600`}>
+                    {type.inventory_count}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center text-sm font-medium">
+                  <span className={`${theme.mutedText} uppercase text-[10px] font-bold`}>Assigned</span>
+                  <span className={`font-mono font-bold ${theme.statusAssigned}`}>
+                    {type.assigned_count}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center text-sm font-medium">
+                  <span className={`${theme.mutedText} uppercase text-[10px] font-bold`}>Total Repairs</span>
+                  <span className={`font-mono font-bold ${theme.statusRepairs}`}>{type.repair_count}</span>
+                </div>
+              </div>
+              
+              <div className={`mt-4 w-full ${theme.progressBarTrack} h-1.5 rounded-full overflow-hidden`}>
+                <div 
+                  className={`${theme.progressBarFill} h-full transition-all duration-500`}
+                  style={{ width: `${(type.assigned_count / (type.total_limit || 1)) * 100}%` }}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
 
         {showAddModal && (
-          <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <form onSubmit={handleAddAssetType} className="bg-gray-800 p-8 rounded-2xl shadow-2xl max-w-md w-full border border-gray-700">
-              <h3 className="text-xl font-bold mb-6">New Category</h3>
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <form onSubmit={handleAddAssetType} className={`${theme.cardBg} p-8 rounded-3xl shadow-2xl max-w-md w-full border ${theme.cardBorder}`}>
+              <h3 className={`text-2xl font-black mb-6 uppercase tracking-tight ${theme.mainText}`}>New Category</h3>
               <div className="mb-6">
-                <label className="block text-sm font-semibold text-gray-400 mb-2">Category Name</label>
+                <label className={`block text-xs font-bold ${theme.mutedText} mb-2 uppercase tracking-wider`}>Category Name</label>
                 <input 
                   autoFocus required
-                  className="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                  className={`w-full bg-gray-50 border-2 ${theme.cardBorder} rounded-xl px-4 py-3 ${theme.mainText} focus:${theme.cardBorderHover} outline-none transition-all`}
                   value={newTypeName}
                   onChange={(e) => setNewTypeName(e.target.value)}
                 />
               </div>
               <div className="flex justify-end gap-3">
-                <button type="button" onClick={() => setShowAddModal(false)} className="px-5 py-2.5 text-gray-400 hover:text-white transition">Cancel</button>
-                <button type="submit" className="px-5 py-2.5 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition">Create</button>
+                <button type="button" onClick={() => setShowAddModal(false)} className={`px-5 py-2.5 ${theme.mutedText} font-bold hover:${theme.mainText} transition`}>Cancel</button>
+                <button type="submit" className={`px-6 py-2.5 ${theme.btnPrimary} rounded-xl font-bold shadow-md transition`}>Create</button>
               </div>
             </form>
           </div>

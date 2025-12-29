@@ -10,6 +10,8 @@ import { useSnackbar } from './context/SnackbarContext';
 import AssetDetails from './pages/AssetDetails';
 import AssetHistory from './pages/AssetHistory';
 import AssetDeepView from './pages/AssetDeepView';
+import { theme } from './theme';
+import myLogo from './assets/react.svg';
 
 function App() {
   const [authUser, setAuthUser] = useState(() => {
@@ -57,8 +59,8 @@ function App() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="text-white font-bold animate-pulse">Authenticating...</div>
+      <div className={`min-h-screen ${theme.pageBg} flex items-center justify-center`}>
+        <div className={`${theme.statusRepairs} font-bold animate-pulse`}>Authenticating...</div>
       </div>
     );
   }
@@ -73,24 +75,33 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 flex flex-col">
-      <nav className="bg-gray-800/50 shadow-lg shadow-gray-700 backdrop-blur-md border-b border-gray-700 px-6 py-4 flex items-center justify-between sticky top-0 z-10">
+    <div className={`min-h-screen ${theme.pageBg} flex flex-col`}>
+      <nav className={`${theme.navBg} ${theme.cardShadow} border-b ${theme.navBorder} px-6 py-4 flex items-center justify-between sticky top-0 z-50`}>
         <div className="flex items-center gap-8">
-          <div className="flex bg-gray-900/80 p-1 rounded-xl border border-gray-700">
+          <div className="flex items-center gap-3  border-r border-orange-500/50">
+            <div className="bg-white p-1 rounded-lg shadow-sm flex items-center justify-center overflow-hidden">
+              <img
+                src={myLogo}
+                alt="System Logo"
+                className="h-8 w-auto object-contain"
+              />
+            </div>
+          </div>
+          <div className={`flex bg-orange-700/40 p-1 rounded-xl border ${theme.navBorder}`}>
             <Link
               to="/"
-              className={`px-6 py-2 rounded-lg font-medium transition-all ${location.pathname === '/' || location.pathname.startsWith('/assets')
-                ? 'bg-white text-blue-600 shadow-lg'
-                : 'text-gray-400 hover:text-white'
+              className={`px-6 py-2 rounded-lg font-bold transition-all ${location.pathname === '/' || location.pathname.startsWith('/assets')
+                ? theme.navActive
+                : theme.navInactive
                 }`}
             >
               Assets
             </Link>
             <Link
               to="/users"
-              className={`px-6 py-2 rounded-lg font-medium transition-all ${location.pathname === '/users'
-                ? 'bg-white text-blue-600 shadow-lg'
-                : 'text-gray-400 hover:text-white'
+              className={`px-6 py-2 rounded-lg font-bold transition-all ${location.pathname === '/users'
+                ? theme.navActive
+                : theme.navInactive
                 }`}
             >
               User Management
@@ -99,18 +110,18 @@ function App() {
         </div>
 
         <div className="flex items-center gap-6">
-          <span className="text-sm text-gray-300 hidden sm:block">
+          <span className={`text-sm ${theme.navText} hidden sm:block opacity-90`}>
             Welcome, <span className="font-bold text-white">{authUser.name}</span>
           </span>
           <button
             onClick={handleLogout}
-            className="text-gray-300 font-medium bg-gray-700/50 hover:bg-red-600 hover:text-white px-5 py-2 rounded-lg transition-all border border-gray-600 hover:border-red-500"
+            className={`${theme.navText} font-bold bg-orange-700/50 hover:bg-white hover:text-orange-600 px-5 py-2 rounded-lg transition-all border ${theme.navBorder} shadow-sm`}
           >
             Logout
           </button>
         </div>
       </nav>
-      <main className="flex-grow">
+      <main className="flex-grow overflow-auto">
         <Routes>
           <Route path="/" element={<AssetsLanding />} />
           <Route path="/users" element={<UserManagement />} />
