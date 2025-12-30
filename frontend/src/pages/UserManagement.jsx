@@ -33,11 +33,11 @@ const UserManagement = ({ authUser }) => {
   const handleUserClick = async (user) => {
     setSelectedEmployee(user);
     try {
-        const res = await axios.get(`http://localhost:5000/api/users/assets/${user.employee_id}`);
-        setEmployeeAssets(res.data);
-        setShowProfile(true);
+      const res = await axios.get(`http://localhost:5000/api/users/assets/${user.employee_id}`);
+      setEmployeeAssets(res.data);
+      setShowProfile(true);
     } catch (err) {
-        showSnackbar("Failed to load employee profile", "error");
+      showSnackbar("Failed to load employee profile", "error");
     }
   };
 
@@ -63,8 +63,8 @@ const UserManagement = ({ authUser }) => {
   };
 
   const handleDelete = (user) => {
-    if (user.email === authUser?.email) {
-      showSnackbar("Cannot delete logged-in Admin", "error");
+    if (user.role === 'Admin') {
+      showSnackbar("Administrative accounts cannot be deleted", "error");
       return;
     }
     askConfirmation("Confirm Deletion", `Remove user access for ${user.name}?`, async () => {
@@ -79,15 +79,15 @@ const UserManagement = ({ authUser }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-        if (isEditing) {
-            await axios.put(`http://localhost:5000/api/users/${selectedUser.id}`, formData);
-            showSnackbar("User updated", "success");
-        } else {
-            await axios.post('http://localhost:5000/api/users', formData);
-            showSnackbar("User added", "success");
-        }
-        setShowModal(false);
-        fetchUsers(); 
+      if (isEditing) {
+        await axios.put(`http://localhost:5000/api/users/${selectedUser.id}`, formData);
+        showSnackbar("User updated", "success");
+      } else {
+        await axios.post('http://localhost:5000/api/users', formData);
+        showSnackbar("User added", "success");
+      }
+      setShowModal(false);
+      fetchUsers();
     } catch (err) { showSnackbar("Error saving user", "error"); }
   };
 
@@ -95,6 +95,7 @@ const UserManagement = ({ authUser }) => {
     user.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     user.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     user.employee_id?.toLowerCase().includes(searchQuery.toLowerCase())
+    
   );
 
   return (
@@ -106,11 +107,11 @@ const UserManagement = ({ authUser }) => {
             <div className="flex gap-4 mt-1">
               <div className="flex items-center gap-1.5">
                 <span className={`text-[10px] font-semibold uppercase tracking-widest ${theme.mutedText}`}>Admins:</span>
-                <span className="text-sm font-black text-orange-600">{users.filter(u => u.email === 'maildcharansai@gmail.com').length}</span>
+                <span className="text-sm font-black text-orange-600">{users.filter(u => u.role === 'Admin').length}</span>
               </div>
               <div className="flex items-center gap-1.5 border-l border-gray-300 pl-4">
                 <span className={`text-[10px] font-semibold uppercase tracking-widest ${theme.mutedText}`}>Employees:</span>
-                <span className={`text-sm font-black ${theme.mainText}`}>{users.filter(u => u.email !== 'maildcharansai@gmail.com').length}</span>
+                <span className={`text-sm font-black ${theme.mainText}`}>{users.filter(u => u.role !== 'Admin').length}</span>
               </div>
             </div>
           </div>
@@ -164,7 +165,7 @@ const UserManagement = ({ authUser }) => {
                   </td>
                   <td className={`px-6 py-2 ${theme.mutedText} font-medium`}>{user.email}</td>
                   <td className="px-6 py-2 text-center">
-                    {user.email === 'maildcharansai@gmail.com' ? (
+                    {user.role === 'Admin' ? (
                       <span className="bg-orange-600 text-white px-3 py-1 rounded-full text-[10px] font-black uppercase">Admin</span>
                     ) : (
                       <span className="bg-gray-100 text-gray-500 px-3 py-1 rounded-full text-[10px] font-bold uppercase">Employee</span>
@@ -178,8 +179,10 @@ const UserManagement = ({ authUser }) => {
                       >
                         <Edit2 size={18} />
                       </button>
-                      {user.email !== authUser?.email && (
-                        <button onClick={() => handleDelete(user)} className={`p-2 text-red-600 hover:bg-red-50 rounded-full transition`}><Trash2 size={18} /></button>
+                      {user.role !== 'Admin' && (
+                        <button onClick={() => handleDelete(user)} className={`p-2 text-red-600 hover:bg-red-50 rounded-full transition`}>
+                          <Trash2 size={18} />
+                        </button>
                       )}
                     </div>
                   </td>
@@ -277,8 +280,8 @@ const UserManagement = ({ authUser }) => {
                         <p className="text-[10px] text-gray-400 font-medium uppercase">{h.type}</p>
                       </td>
                       <td className="px-4 py-3 text-xs">
-                        <span className="text-gray-500 font-medium">{h.from_date}</span> 
-                        <span className="mx-2 text-gray-300">→</span> 
+                        <span className="text-gray-500 font-medium">{h.from_date}</span>
+                        <span className="mx-2 text-gray-300">→</span>
                         <span className="text-orange-600 font-bold">{h.to_date}</span>
                       </td>
                       <td className="px-4 py-3 text-xs text-gray-500 italic">{h.remarks || '---'}</td>
