@@ -48,13 +48,18 @@ const UserManagement = ({ authUser }) => {
     reader.onload = async (event) => {
       const text = event.target.result;
       const rows = text.split('\n').slice(1);
-      const importedUsers = rows.map(row => {
+
+      const rawUsers = rows.map(row => {
         const [empId, name, email] = row.split(',');
         return { employee_id: empId?.trim(), name: name?.trim(), email: email?.trim(), role: 'Employee' };
       }).filter(u => u.name && u.email);
+      const uniqueInFile = rawUsers.filter((user, index, self) =>
+        index === self.findIndex((t) => t.email === user.email)
+      );
+
       try {
-        await axios.post('http://localhost:5000/api/users/bulk', { users: importedUsers });
-        showSnackbar(`${importedUsers.length} users imported successfully`, "success");
+        await axios.post('http://localhost:5000/api/users/bulk', { users: uniqueInFile });
+        showSnackbar(`${uniqueInFile.length} users processed successfully`, "success");
         fetchUsers();
       } catch (err) { showSnackbar("Failed to import CSV", "error"); }
     };

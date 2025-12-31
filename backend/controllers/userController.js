@@ -26,9 +26,18 @@ exports.getAllUsers = async (req, res) => {
 exports.createUser = async (req, res) => {
     const { employee_id, name, email, role } = req.body;
     try {
-        // Default role is 'Employee' if not provided
+        const [existing] = await pool.query(
+            'SELECT id FROM users WHERE email = ? OR employee_id = ?', 
+            [email, employee_id]
+        );
+
+        if (existing.length > 0) {
+            return res.status(400).json({ 
+                error: "Duplicate Error: A user with this Email or Employee ID already exists." 
+            });
+        }
         await pool.query(
-            'INSERT INTO users (employee_id, name, email, role) VALUES (?, ?, ?, ?)',
+            'INSERT INTO users (employee_id, name, email, role, status) VALUES (?, ?, ?, ?, "Active")',
             [employee_id, name, email, role || 'Employee']
         );
         res.status(201).json({ message: "User added successfully" });
@@ -42,17 +51,21 @@ exports.updateUser = async (req, res) => {
     const { employee_id, name, email, role } = req.body; 
 
     try {
-        const query = `
-            UPDATE users 
-            SET employee_id = ?, name = ?, email = ?, role = ? 
-            WHERE id = ?
-        `;
+        const [existing] = await pool.query(
+            'SELECT id FROM users WHERE (email = ? OR employee_id = ?) AND id != ?', 
+            [email, employee_id, id]
+        );
+
+        if (existing.length > 0) {
+            return res.status(400).json({ error: "Another user is already using this Email or Employee ID." });
+        }
+
+        const query = `UPDATE users SET employee_id = ?, name = ?, email = ?, role = ? WHERE id = ?`;
         const [result] = await pool.query(query, [employee_id, name, email, role, id]);
 
         if (result.affectedRows === 0) return res.status(404).json({ error: "User not found" });
         res.json({ message: "User updated successfully" });
     } catch (err) {
-        console.error(err);
         res.status(500).json({ error: "Failed to update user" });
     }
 };
